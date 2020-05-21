@@ -1,5 +1,7 @@
 import pygame
 from pygame.locals import *
+from pygame import mixer
+import time
 # Intialize the pygame
 pygame.init()   
 
@@ -10,6 +12,10 @@ screen = pygame.display.set_mode((800, 600))
 pygame.display.set_caption("Dinoventure")
 icon = pygame.image.load('dino_icon.png')
 pygame.display.set_icon(icon)
+
+# BackGround Sound
+mixer.music.load('music.mp3')
+mixer.music.play(-1)
 
 ########################################################################################################################################
 clock = pygame.time.Clock()
@@ -25,6 +31,28 @@ def draw_text(text, size, color, surface, x, y, center):
         textrect.topleft = (x, y)
     surface.blit(textobj, textrect)
 
+def Rules():
+    screen.fill((0,0,0))
+    draw_text("You will Play this game however.", 50, (255,50,0), screen, 800//2 ,140, True)
+    pygame.display.update()
+    time.sleep(2)
+    while True:
+        button_back = pygame.Rect(250,250,190,50)
+        pygame.draw.rect(screen, (0, 100, 150), button_back)
+        draw_text('back',45, (255,255,0), screen, 260, 260, False)
+        click = False
+        mx,my = pygame.mouse.get_pos()
+        for event in pygame.event.get():
+            if event.type == MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    click = True
+            if event.type == QUIT:
+                pygame.quit()
+        if button_back.collidepoint((mx,my)):
+            if click:
+                break
+        pygame.display.update()
+
 def mainmenu():
     global click
     global menu
@@ -35,18 +63,29 @@ def mainmenu():
         button_1 = pygame.Rect(250,250,190,50) # rectangle position and dimentions
         button_2 = pygame.Rect(250,350,300,50) 
         button_3 = pygame.Rect(250,450,80,50) 
+
         mx,my = pygame.mouse.get_pos()
+
         if button_1.collidepoint((mx,my)):
             if click:
                 run = True
                 menu = False
                 break
+        if button_2.collidepoint((mx,my)):
+            if click:
+                Rules()
+        if button_3.collidepoint((mx,my)):
+            if click:
+                pygame.quit()
+
         pygame.draw.rect(screen, (0, 100, 150), button_1) # start game button
         pygame.draw.rect(screen, (0, 100, 150), button_2) # rules game button
         pygame.draw.rect(screen, (0, 100, 150), button_3) # exit
+
         draw_text('Start Game',45, (255,255,0), screen, 260, 260, False) #button text
         draw_text('Rules and Controls',45, (255,255,0), screen, 260, 360, False)
         draw_text('Exit',45, (255,255,0), screen, 260, 460, False)
+
         click = False
         for event in pygame.event.get():
             if event.type == QUIT:
