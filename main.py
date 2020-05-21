@@ -1,5 +1,4 @@
-import pygame
-import time
+import pygame, time, sys
 from pygame import mixer
 
 pygame.mixer.init()
@@ -68,10 +67,10 @@ def button(msg,x,y,w,h,ic,ac,action=None):
     textRect.center = ( (x+(w/2)), (y+(h/2)) )
     screen.blit(textSurf, textRect)
 
-# # quiting function
+# Quiting function for buttons
 def quit_game():
     pygame.quit()
-    # quit()
+    sys.exit()
 
 # Options Menu/ Pause Game
 def unpause():
@@ -90,13 +89,13 @@ def paused():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
-                # quit()
+                sys.exit()
                 
         screen.fill(colors['black'])
         draw_text('Paused',50,colors['white'], screen, 800//2, 180, True)
         button('Exit',buttonx-50 , buttony-25+100, 100, 50, colors['pink'],colors['light pink'], quit_game)
-        button('Main Menu',buttonx-75, buttony-25+25, 100, 50, colors['pink'],colors['light pink'], unpause)
-        button('Resume',buttonx-100, buttony-25-50, 150, 50, colors['pink'],colors['light pink'], game_intro)
+        button('Main Menu',buttonx-75, buttony-25+25, 150, 50, colors['pink'],colors['light pink'], game_intro)
+        button('Resume',buttonx-50, buttony-25-50, 100, 50, colors['pink'],colors['light pink'], unpause)
         
         pygame.display.update()
         clock.tick(15) 
@@ -109,7 +108,8 @@ def instructions():
         buttony = 600//2 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                loop = False
+                pygame.quit()
+                sys.exit()
 
         screen.fill(colors['black'])
         draw_text('Instructions',50,colors['purple'], screen, 800//2, 50, True)
@@ -128,7 +128,8 @@ def game_over():
         buttony = 600//2 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                loop = False
+                pygame.quit()
+                sys.exit()
 
         screen.fill(colors['black'])
         draw_text('GAME OVER!',80,colors['red'], screen, 800//2, 180, True)
@@ -150,33 +151,13 @@ def you_win():
             # print(event)
             if event.type == pygame.QUIT:
                 pygame.quit()
+                sys.exit()
 
         screen.fill(colors['black'])
         draw_text('YOU WIN!',80,colors['pink'], screen, 800//2, 180, True)
         button('Exit',buttonx-50 , buttony-25+100, 100, 50, colors['purple'],colors['light purple'], quit_game)
         button('Main Menu',buttonx-75, buttony-25, 150, 50, colors['purple'],colors['light purple'], game_intro )
     
-        pygame.display.update()
-        clock.tick(15)
-
-# Exit Menu
-def exit_menu():
-    global colors
-    pygame.mixer.music.pause()
-    while exiting:
-        buttonx = 800//2
-        buttony = 600//2 
-        for event in pygame.event.get():
-            # print(event)
-            if event.type == pygame.QUIT:
-                pygame.quit()
-
-        screen.fill(colors['black'])
-        draw_text('Are You Sure you want to quit?',50,colors['purple'], screen, 800//2, 180, True)
-        button('Exit',buttonx-50 , buttony-25+100, 100, 50, colors['green'],colors['light green'], quit_game)
-        button('Main Menu',buttonx-75, buttony-25+25, 100, 50, colors['green'],colors['light green'], unpause)
-        button('Resume',buttonx-100, buttony-25-50, 150, 50, colors['green'],colors['light green'], game_intro)
-        
         pygame.display.update()
         clock.tick(15)
 
@@ -189,7 +170,7 @@ def game_intro():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
-                exit()
+                sys.exit()
 
         screen.fill(colors['black'])
         draw_text('Dinoventure', 80, colors['orange'], screen, 800//2, 150, True)    
@@ -214,7 +195,7 @@ def player(x,y):
 # Game Loop
 def game():
     global pause
-    global exiting
+    # global exiting
     global playerX
     global playerX_change
     global playerY
@@ -230,12 +211,12 @@ def game():
 
         # RGB = Red, Green, Blue
         screen.fill(colors['black'])
-        button('||',750, 550, 30, 30, colors['green'],colors['light green'], paused)
         button('game over',100, 100, 150, 50, colors['green'],colors['light green'], game_over)
         button('you win',100, 400, 150, 50, colors['green'],colors['light green'], you_win)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
+                sys.exit()
             # if keystroke is pressed check whether its right or left
             if event.type == pygame.KEYDOWN: #checking if any key was pressed
                 if event.key == pygame.K_LEFT:
@@ -251,9 +232,6 @@ def game():
                     playerY_change = -5
                     playerX_change = 0
                 if event.key == pygame.K_ESCAPE:
-                    exiting = True
-                    exit_menu()
-                if event.key == pygame.K_p:
                     pause = True
                     paused()
             if event.type == pygame.KEYUP:
