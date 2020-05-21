@@ -121,7 +121,7 @@ def game():
     running = True
     while running:
         # This will delay the game the given amount of milliseconds. In our casee 0.1 seconds will be the delay
-        pygame.time.delay(100)
+        clock.tick(60)
 
         # RGB = Red, Green, Blue
         screen.fill((0, 0, 0))
