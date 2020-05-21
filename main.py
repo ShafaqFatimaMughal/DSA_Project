@@ -1,7 +1,16 @@
 import pygame
-from pygame.locals import *
-from pygame import mixer
 import time
+from pygame import mixer
+
+pygame.mixer.init()
+clock = pygame.time.Clock()
+
+# For resuming
+pause = False
+exiting = False
+gover_sound = pygame.mixer.Sound("game over.wav")
+success_sound = pygame.mixer.Sound("success.wav")
+
 # Intialize the pygame
 pygame.init()   
 
@@ -13,14 +22,18 @@ pygame.display.set_caption("Dinoventure")
 icon = pygame.image.load('dino_icon.png')
 pygame.display.set_icon(icon)
 
-# BackGround Sound
-mixer.music.load('music.mp3')
-mixer.music.play(-1)
+# Colors using RGB
+colors={
+    'white': (255,255,255), 'black': (0,0,0),
+    'green': (110,180,0), 'light green': (110,220,0),
+    'blue': (50,150,150), 'light blue': (80,210,180),       
+    'yellow': (255,225,0), 'purple': (180,100,200),
+    'red': (200,0,0), 'light red': (255,100,100),
+    'orange': (255,100,0), 'light pink': (255,110,180),
+    'grey': (220,240,240), 'pink': (255,60,150),
+    'light orange': (250,140,10), 'light purple': (200,110,210)
+}
 
-########################################################################################################################################
-clock = pygame.time.Clock()
-click = False
-menu = True
 def draw_text(text, size, color, surface, x, y, center):
     font = pygame.font.SysFont(None, size)
     textobj = font.render(text, 1, color)
@@ -31,76 +44,161 @@ def draw_text(text, size, color, surface, x, y, center):
         textrect.topleft = (x, y)
     surface.blit(textobj, textrect)
 
-def Rules():
-    screen.fill((0,0,0))
-    draw_text("You will Play this game however.", 50, (255,50,0), screen, 800//2 ,140, True)
-    pygame.display.update()
-    time.sleep(2)
-    while True:
-        button_back = pygame.Rect(250,250,190,50)
-        pygame.draw.rect(screen, (0, 100, 150), button_back)
-        draw_text('back',45, (255,255,0), screen, 260, 260, False)
-        click = False
-        mx,my = pygame.mouse.get_pos()
+def button(msg,x,y,w,h,ic,ac,action=None):
+    global pause # hard coding for pause button
+    mouse = pygame.mouse.get_pos()
+    click = pygame.mouse.get_pressed()
+    if x+w > mouse[0] > x and y+h > mouse[1] > y:
+        pygame.draw.rect(screen, ac,(x,y,w,h))
+        # print(action)
+        # if str(action) == 'paused': # Hard coding for pause button
+        #     pause == True
+        #     print('lol')
+        #     if click[0] == 1 and action != None:
+        #         print('hehe')
+        #         action()
+        if click[0] == 1 and action != None:
+            action()         # because fn could not have been called as button fn parameter
+    else:
+        pygame.draw.rect(screen, ic,(x,y,w,h))
+
+    smallText = pygame.font.SysFont(None,30)
+    textSurface = smallText.render(msg, True, colors['yellow'])
+    textSurf, textRect = textSurface, textSurface.get_rect()
+    textRect.center = ( (x+(w/2)), (y+(h/2)) )
+    screen.blit(textSurf, textRect)
+
+# # quiting function
+def quit_game():
+    pygame.quit()
+    # quit()
+
+# Options Menu/ Pause Game
+def unpause():
+    global pause
+    global exiting
+    pygame.mixer.music.unpause()
+    pause = False
+    exiting = False
+
+def paused():
+    global colors
+    pygame.mixer.music.pause()
+    while pause:
+        buttonx = 800//2
+        buttony = 600//2 
         for event in pygame.event.get():
-            if event.type == MOUSEBUTTONDOWN:
-                if event.button == 1:
-                    click = True
-            if event.type == QUIT:
+            if event.type == pygame.QUIT:
                 pygame.quit()
-        if button_back.collidepoint((mx,my)):
-            if click:
-                break
+                # quit()
+                
+        screen.fill(colors['black'])
+        draw_text('Paused',50,colors['white'], screen, 800//2, 180, True)
+        button('Exit',buttonx-50 , buttony-25+100, 100, 50, colors['pink'],colors['light pink'], quit_game)
+        button('Main Menu',buttonx-75, buttony-25+25, 100, 50, colors['pink'],colors['light pink'], unpause)
+        button('Resume',buttonx-100, buttony-25-50, 150, 50, colors['pink'],colors['light pink'], game_intro)
+        
         pygame.display.update()
+        clock.tick(15) 
 
-def mainmenu():
-    global click
-    global menu
-    global run
-    while menu:
-        screen.fill((0,0,0))
-        draw_text('Dinoventure', 80, (255,0,0), screen, 800//2, 140, True)
-        button_1 = pygame.Rect(250,250,190,50) # rectangle position and dimentions
-        button_2 = pygame.Rect(250,350,300,50) 
-        button_3 = pygame.Rect(250,450,80,50) 
-
-        mx,my = pygame.mouse.get_pos()
-
-        if button_1.collidepoint((mx,my)):
-            if click:
-                run = True
-                menu = False
-                break
-        if button_2.collidepoint((mx,my)):
-            if click:
-                Rules()
-        if button_3.collidepoint((mx,my)):
-            if click:
-                pygame.quit()
-
-        pygame.draw.rect(screen, (0, 100, 150), button_1) # start game button
-        pygame.draw.rect(screen, (0, 100, 150), button_2) # rules game button
-        pygame.draw.rect(screen, (0, 100, 150), button_3) # exit
-
-        draw_text('Start Game',45, (255,255,0), screen, 260, 260, False) #button text
-        draw_text('Rules and Controls',45, (255,255,0), screen, 260, 360, False)
-        draw_text('Exit',45, (255,255,0), screen, 260, 460, False)
-
-        click = False
+def instructions():
+    global colors
+    loop = True
+    while loop:
+        buttonx = 800//2
+        buttony = 600//2 
         for event in pygame.event.get():
-            if event.type == QUIT:
-                menu = False
-            if event.type == KEYDOWN:
-                if event.key == K_ESCAPE:
-                    menu = False
-            if event.type == MOUSEBUTTONDOWN:
-                if event.button == 1:
-                    click = True
-        pygame.display.update()
-        clock.tick(60)
+            if event.type == pygame.QUIT:
+                loop = False
 
-#######################################################################################################################3
-mainmenu()
+        screen.fill(colors['black'])
+        draw_text('Instructions',50,colors['purple'], screen, 800//2, 50, True)
+        button('Okay',680, 520, 100, 50, colors['green'],colors['light green'], game_intro)
+        
+        pygame.display.update()
+        clock.tick(15)
+
+def game_over():
+    global colors
+    loop = True
+    pygame.mixer.music.stop()
+    pygame.mixer.Sound.play(gover_sound)
+    while loop:
+        buttonx = 800//2
+        buttony = 600//2 
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                loop = False
+
+        screen.fill(colors['black'])
+        draw_text('GAME OVER!',80,colors['red'], screen, 800//2, 180, True)
+        button('Exit',buttonx-50 , buttony-25+100, 100, 50, colors['orange'],colors['light orange'], quit_game)
+        button('Main Menu',buttonx-75, buttony-25, 150, 50, colors['orange'],colors['light orange'], game_intro )
+        
+        pygame.display.update()
+        clock.tick(15)
+
+def you_win():
+    global colors
+    loop = True
+    pygame.mixer.music.stop()
+    pygame.mixer.Sound.play(success_sound)
+    while loop:
+        buttonx = 800//2
+        buttony = 600//2 
+        for event in pygame.event.get():
+            # print(event)
+            if event.type == pygame.QUIT:
+                pygame.quit()
+
+        screen.fill(colors['black'])
+        draw_text('YOU WIN!',80,colors['pink'], screen, 800//2, 180, True)
+        button('Exit',buttonx-50 , buttony-25+100, 100, 50, colors['purple'],colors['light purple'], quit_game)
+        button('Main Menu',buttonx-75, buttony-25, 150, 50, colors['purple'],colors['light purple'], game_intro )
+    
+        pygame.display.update()
+        clock.tick(15)
+
+# Exit Menu
+def exit_menu():
+    global colors
+    pygame.mixer.music.pause()
+    while exiting:
+        buttonx = 800//2
+        buttony = 600//2 
+        for event in pygame.event.get():
+            # print(event)
+            if event.type == pygame.QUIT:
+                pygame.quit()
+
+        screen.fill(colors['black'])
+        draw_text('Are You Sure you want to quit?',50,colors['purple'], screen, 800//2, 180, True)
+        button('Exit',buttonx-50 , buttony-25+100, 100, 50, colors['green'],colors['light green'], quit_game)
+        button('Main Menu',buttonx-75, buttony-25+25, 100, 50, colors['green'],colors['light green'], unpause)
+        button('Resume',buttonx-100, buttony-25-50, 150, 50, colors['green'],colors['light green'], game_intro)
+        
+        pygame.display.update()
+        clock.tick(15)
+
+# Game intro screen
+def game_intro():
+    global colors
+    intro = True
+
+    while intro:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+
+        screen.fill(colors['black'])
+        draw_text('Dinoventure', 80, colors['orange'], screen, 800//2, 150, True)    
+        button('New Game',300,250,170,50, colors['blue'], colors['light blue'], game)
+        button('Rules and Controls',260,350,245,50,colors['blue'], colors['light blue'], instructions)
+        button('Exit',345,450,75,50,colors['blue'], colors['light blue'], quit_game) 
+        
+        pygame.display.update()
+        clock.tick(15)
 
 # Player
 playerImg = pygame.image.load('dino_char.png')
@@ -112,23 +210,32 @@ playerY_change = 0
 def player(x,y):
     screen.blit(playerImg, (x, y))
 
+#####################################################################################################################################
 # Game Loop
 def game():
+    global pause
+    global exiting
     global playerX
     global playerX_change
     global playerY
     global playerY_change
     running = True
+
+    # BackGround Sound
+    pygame.mixer.music.load('background.wav')
+    pygame.mixer.music.play(-1)
     while running:
         # This will delay the game the given amount of milliseconds. In our casee 0.1 seconds will be the delay
-        clock.tick(60)
+        pygame.time.delay(100)
 
         # RGB = Red, Green, Blue
-        screen.fill((0, 0, 0))
-
+        screen.fill(colors['black'])
+        button('||',750, 550, 30, 30, colors['green'],colors['light green'], paused)
+        button('game over',100, 100, 150, 50, colors['green'],colors['light green'], game_over)
+        button('you win',100, 400, 150, 50, colors['green'],colors['light green'], you_win)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                running = False
+                pygame.quit()
             # if keystroke is pressed check whether its right or left
             if event.type == pygame.KEYDOWN: #checking if any key was pressed
                 if event.key == pygame.K_LEFT:
@@ -143,19 +250,22 @@ def game():
                 if event.key == pygame.K_UP:
                     playerY_change = -5
                     playerX_change = 0
-                if event.key == pygame.K_SPACE:
-                    break
+                if event.key == pygame.K_ESCAPE:
+                    exiting = True
+                    exit_menu()
+                if event.key == pygame.K_p:
+                    pause = True
+                    paused()
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
                     playerX_change = 0
                 if event.key == pygame.K_DOWN or event.key == pygame.K_UP:
                     playerY_change = 0
-                if event.key == pygame.K_SPACE:
-                    break
 
         playerX += playerX_change
         playerY += playerY_change
         player(playerX, playerY)
         pygame.display.update()
 
-game()
+game_intro()
+# pygame.quit()
